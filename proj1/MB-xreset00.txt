@@ -1,0 +1,39 @@
+#### Stručně odpovězte na následující otázky: ######
+
+1. Proč je nutné určovat, zda má výpočet pokračovat?
+==============================================================================
+
+Pre dosiahnutie optimálnejšieho využitia procesora.
+Chceme aby vyýpočet skončil v momente keď sme pre všetky práve počítané
+prvky určili nejakú hodnotu (tzv. pre dané počiatočné súradnice sme vyleteli mimo krajné hodnoty).
+riadok 58 LineMandelCalculatior.cc:
+for (int l = 0; control < width && l < limit; ++l) <- kde control je counter dopočítaných hodnôt
+
+2. Byla "Line" vektorizace efektivní? Proč?
+==============================================================================
+
+Áno bola, pretože nám dovoľuje v jednej iterácií vypočítať viacero hodnôt,
+keďže môžeme spracovávať po riadkoch.
+
+3. Jaká byla dosažena výkonnost v Intel Advisoru pro jednotlivé implementace 
+(v GFLOPS)?
+==============================================================================
+Ref = 2.23 GFLOPS
+Line = 29.95 GFLOPS
+Batch = 31.34 GFLOPS
+
+4. Jaká část kódu byla paralizována v "Line" implementaci? Vyčteme tuto 
+informaci i u batch kalkulátoru?
+==============================================================================
+
+V tomto kóde sme iba vektorizovali.
+
+5. Co vyčteme z Roofline modelu pro obě vektorizované implementace?
+==============================================================================
+
+Čím je program brzdený (pamäť, procesor,...).
+Batch sme blokovaný pamäťou
+Line sme tiež blokovaný pamäťou
+(V oboch prípadoch sme tesne pod L2 úrovňou.
+Pre lepšie výsledky by bola potrebná lepšia práca s cache pamäťou)
+

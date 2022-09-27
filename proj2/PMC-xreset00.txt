@@ -1,0 +1,100 @@
+Architektury Výpočetních Systémů (AVS 2021)
+Projekt č. 2 (PMC)
+Login: xreset00
+
+Úloha 1: Paralelizace původního řešení
+===============================================================================
+
+1) Kterou ze smyček (viz zadání) je vhodnější paralelizovat a co způsobuje 
+   neefektivitu paralelizaci té druhé?
+
+   Odpoveď: Prvá smyčka v marchCubes() metóde bola k paralelizácií výhodnejšia.
+   Parelelizovaný väčší počet iterácií => väčšie zrýchlenie
+
+2) Jaké plánování (rozdělení práce mezi vlákna) jste zvolili a proč? 
+   Jaký vliv má velikost "chunk" při dynamickém plánování (8, 16, 32, 64)?
+
+   Odpoveď: Zvolil som dynamické plánovanie, keďže pre for cykly kde každá iterácia
+   zaberie rôzny čas by to malo priniesť najlepšie výsledky.
+   Chunk veľkost určuje koľko iterácií dostane jedno vlákno na vykonanie.
+   Po ich dokončení dostane nový chunk.
+
+3) Jakým způsobem zajišťujete ukládání trojúhelníků z několika vláken současně?
+
+   Odpoveď: #pragma omp critical (zámok)
+
+Úloha 2: Paralelní průchod stromem
+===============================================================================
+
+1) Stručně popište použití OpenMP tasků ve vašem řešení.
+
+   Odpoveď: S pragma omp single nowait identifikujem volanie divide()
+   ako časť kódu, ktorá musí bežať na jednom vlákne.
+
+   Potom, keďže implementujem rekurzívny algoritmus, využívam pragma omp task.
+   Tento blok je potom možné pararélne spustiť s kódom mimo task bolasti.
+
+   Nakoniec pomocou #pragma omp taskwait čakám na dokončenie child taskov
+   generovaných aktuálnym taskom
+
+2) Jakým způsobem jste realizovali sesbírání celkového počtu trojúhelníků?
+
+   Odpoveď: Ako bolo navrhnuté v zadaní, pomocou aproximácie gule opísanej
+   okolo aktuálneho bloku som prevádzal test, či je možné aby jeho
+   podpriestorom prechádzal hľadanýý povrch. Ak nie tak je počet
+   trojuholníkou 0 a tu aj pripočítavam.
+
+   Inak pripočítavám hodnotu navrátenú z metódy buildCube().
+
+   A pri vynorovaní z rekurzie pripočítavám túto spočítanú sumu.
+
+3) Jaký vliv má na vaše řešení tzv. "cut-off"? Je vhodné vytvářet nový 
+   task pro každou krychli na nejnižší úrovni?
+
+   Odpoveď: cut-off určuje do akej hĺbky sa má zanorovať. Ovplyvňuje presnosť riešenia.
+   Myslím, že je to nevyhnutné, lebo potrebujeme aj tie overiť, či sa majú vykresliť.
+
+4) Jakým způsobem zajišťujete ukládání trojúhelníků z několika vláken současně?
+
+   Odpoveď: #pragma omp atomic update (Garantuje, že len jedno vlákno updatuje zdieľanú premennú)
+
+Úloha 3: Grafy škálování všech řešení
+===============================================================================
+
+1) Stručně zhodnoťte efektivitu vytvořených řešení (na základě grafů škálování).
+
+   Odpoveď: Octree je menej efektívny pre vstupy s grid do 2^13,
+   potom to pre 2^14 vychádza na rovnako a od 2^15 vyššie je OpenMP Loop
+   postupne rýchlejší.
+
+2) V jakém případě (v závislosti na počtu bodů ve vstupním souboru a velikosti 
+   mřížky) bude vaše řešení 1. úlohy neefektivní? (pokud takový případ existuje)
+
+   Odpoveď: pre veľký počet jadier 
+
+3) Je (nebo není) stromový algoritmus efektivnější z pohledu slabého škálování 
+   vzhledem ke vstupu?
+
+   Odpoveď: Nie je
+
+Úloha 4: Analýza využití jader pomocí VTune
+================================================================================
+
+1) Jaké bylo průměrné využití jader pro všechny tři implementace s omezením na 
+   18 vláken? Na kolik procent byly využity?
+   
+   ref: 2.8%
+   loop: 46.7%
+   tree: 41.1 %
+
+2) Jaké bylo průměrné využití jader pro všechny tři implementace s využitím 
+   všech jader? Na kolik procent se podařilo využít obě CPU?
+   
+   ref: 2.8%
+   loop: 78%
+   tree: 59.8%
+
+3) Jaké jsou závěry z těchto měření?
+
+   Odpoveď: Pre referenčné riešenie bez paralelizácie počet povolených vláken nič nezmenil
+   OpenMP Loop riešenie jerýchlejšie ako Octree pre väčšie dáta.
